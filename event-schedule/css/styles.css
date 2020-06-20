@@ -235,6 +235,14 @@ body {
   font-style: italic;
 }
 
+.header-grid {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    max-width: 1000px;
+    margin: 5px 0 5px 0;
+}
+
 #sortDiv, #genreDiv, .timeZoneDiv {
     font-size: .7em;
     text-transform: uppercase;
@@ -244,41 +252,27 @@ body {
 }
 
 #mobile-schedule-view-container {
-  display: block;
-}
-
-#calendar {
   display: none;
 }
 
-.header-grid {
-  flex-direction: column;
-  padding: 20px;
-  background-color: rgba(244,244,244,1);
+#calendar {
+  display: block;
 }
 
-@media only screen and (min-width: 768) {
+@media screen and (max-width: 700px) {
   #mobile-schedule-view-container {
-    display: none;
-  }
-
-  #calendar {
     display: block;
   }
 
-  .header-grid {
-      display: flex;
-      flex-direction: row;
-      width: 100%;
-      max-width: 1000px;
-      margin: 5px 0 5px 0;
-      background-color: transparent;
+  #calendar {
+    display: none;
   }
-}
 
-
-
-@media only screen and (max-width: 768) {
+  .header-grid {
+    flex-direction: column;
+    padding: 20px;
+    background-color: rgba(244,244,244,1);
+  }
 
   #sortDiv, #genreDiv, .timeZoneDiv {
     padding: 0;
