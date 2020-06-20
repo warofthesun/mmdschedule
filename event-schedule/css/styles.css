@@ -243,12 +243,8 @@ body {
     margin: auto;
 }
 
-#mobile-schedule-view-container {
-  display: block;
-}
-
 #calendar {
-  display: none;
+  display: block;
 }
 
 .header-grid {
@@ -258,6 +254,7 @@ body {
 }
 
 .mobile-schedule-view-container {
+  display: none;
   /* This causes long links to wrap */
   overflow-wrap: break-word;
   word-wrap: break-word;
@@ -323,10 +320,8 @@ body {
   margin-right: 1.5em;
 }
 
+
 @media only screen and (min-width: 768px) {
-  #mobile-schedule-view-container {
-    display: none;
-  }
 
   #calendar {
     display: block;
