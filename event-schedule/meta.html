@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+
+    <script data-require="jquery@*" data-semver="3.1.1"
+        src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="css/styles.css" />
+
+    <script>
+        function copyCityLinkToClipboard(id, type) {
+            var baseUrl = 'https://chrisgundersen.github.io/MakeMusicDay/event-schedule/';
+
+            // Create a dummy input to copy the string array inside it
+            var dummy = document.createElement("input");
+
+            // Add it to the document
+            document.body.appendChild(dummy);
+
+            // Set its ID
+            dummy.setAttribute("id", "dummy_id");
+
+            var url = baseUrl + type + '.html?cityId=' + id;
+
+            // Output the array into it
+            document.getElementById("dummy_id").value = url;
+
+            // Select it
+            dummy.select();
+
+            dummy.setSelectionRange(0, 99999); /*For mobile devices*/
+
+            // Copy its contents
+            document.execCommand("copy");
+
+            // Remove it as its not needed anymore
+            document.body.removeChild(dummy);
+
+            /* Copy the text inside the text field */
+            document.execCommand("copy");
+
+            /* Alert the copied text */
+            alert("Copied " + type + " URL to clipboard: " + url);
+        }
+
+        $(document).ready(function () {
+
+            var citiesEl = document.getElementById('cities');
+
+            var cities = [];
+            var maxBatchSize = 100;
+
+            $.ajax({
+                // async: false,
+                url: "https://ny.makemusicday.org/api/cities",
+                method: "GET",
+                datatype: "json"
+            }).done(function (response) {
+                $.each(response, function (idx, e) {
+                    cities.push({
+                        accent_color: e.accent_color,
+                        base_url: e.base_url,
+                        contact_us_url: e.contact_us_url,
+                        id: e.id,
+                        logo_url: e.logo_url,
+                        latitude: e.latitude,
+                        longitude: e.longitude,
+                        map_zoom_level: e.map_zoom_level,
+                        name: e.name,
+                        primary_button_color: e.primary_button_color,
+                        secondary_button_color: e.secondary_button_color,
+                        timezone: e.timezone,
+                        url: e.url,
+                        city: null,
+                        state: null
+                    });
+                });
+            }).then(function () {
+                /*
+                var loops = Math.ceil(cities.length / maxBatchSize);
+
+                var i;
+                for (i = 0; i < loops; i++) {
+                    var j;
+                    var reverseGeocodeUrl =
+                        "https://www.mapquestapi.com/geocoding/v1/batch?key=phSy8BoSRFsDmGbPmmKjzScZzQUunimV&thumbMaps=false";
+
+                    for (j = 0; j < maxBatchSize; j++) {
+                        if (cities[(i * maxBatchSize) + j]) {
+                            reverseGeocodeUrl += '&location=' + cities[(i * maxBatchSize) + j]
+                                .latitude + ',' + cities[(i * maxBatchSize) + j].longitude;
+                        }
+                    }
+
+                    $.ajax({
+                        async: false,
+                        url: reverseGeocodeUrl,
+                        method: "GET",
+                        datatype: "json"
+                    }).done(function (response) {
+                        $.each(response.results, function (idx, e) {
+                            var foundCityIndex = cities.findIndex(city => city
+                                .latitude === e.providedLocation.latLng.lat && city
+                                .longitude === e.providedLocation.latLng.lng);
+                            cities[foundCityIndex].city = e.locations[0].adminArea5;
+                            cities[foundCityIndex].state = e.locations[0].adminArea3;
+                        });
+
+                        // var eventCounts = cities.reduce((p, c) => {
+                        //     var stateCode = c.state;
+                        //     if (c.state) {
+                        //         if (!p.hasOwnProperty(stateCode)) {
+                        //             p[stateCode] = 0;
+                        //         }
+                        //         p[stateCode]++;
+                        //     }
+                        //     return p;
+                        // }, {});
+
+
+                    }).fail(function (xhr, status, error) {
+                        var errorMessage = xhr.status + ': ' + xhr.statusText;
+                        alert('Error: ' + errorMessage);
+                    });
+                }
+
+                cities = cities.sort(function (a, b) {
+                    if (a.state > b.state) return 1;
+                    if (a.state < b.state) return -1;
+
+                    if (a.city > b.city) return 1;
+                    if (a.city < b.city) return -1;
+                });*/
+
+                $.each(cities, function (idx, e) {
+                    // var spacer = document.createElement('strong');
+                    // spacer.innerHTML = ' | ';
+                    var cityId = e.id;
+                    var cityDiv = document.createElement('div');
+                    cityDiv.id = 'div_' + e.id;
+                    cityDiv.className = 'city';
+
+                    var cityNameLink = document.createElement('a');
+                    cityNameLink.setAttribute('href', e.url);
+                    cityNameLink.setAttribute('target', '_blank');
+                    cityNameLink.innerHTML = e.name + ' (Time Zone: ' + e.timezone + ')';
+
+                    cityDiv.appendChild(cityNameLink);
+
+                    // var cityState = document.createElement('a')
+                    // cityState.setAttribute('href',
+                    //     'https://www.google.com/maps/search/?api=1&query=' + e.latitude +
+                    //     ',' + e.longitude);
+                    // cityState.setAttribute('target', '_blank');
+                    // cityState.innerHTML = e.city + ', ' + e.state;
+                    // cityDiv.appendChild(spacer).appendChild(cityState);
+
+                    var cityArtistScheduleButton = document.createElement('button');
+                    cityArtistScheduleButton.innerHTML = 'Get Artist Schedule URL';
+                    cityArtistScheduleButton.addEventListener('click', function () {
+                        copyCityLinkToClipboard(e.id, 'artists');
+                    }, false);
+
+                    cityDiv.appendChild(cityArtistScheduleButton);
+
+                    var cityVenueScheduleButton = document.createElement('button');
+                    cityVenueScheduleButton.innerHTML = 'Get Venue Schedule URL';
+                    cityVenueScheduleButton.addEventListener('click', function () {
+                        copyCityLinkToClipboard(e.id, 'venues');
+                    }, false);
+
+                    cityDiv.appendChild(cityVenueScheduleButton);
+                    
+
+                    var artistLinksDiv = document.createElement('div');
+                    artistLinksDiv.id = 'artists-links-city-id-' + e.id;
+
+                    cityDiv.appendChild(artistLinksDiv);
+
+                    // var spacer = document.createElement('br');
+                    // spacer.innerHTML = ' | ';
+
+                    $.ajax({
+                        // async: false,
+                        url: e.base_url + "/api/cities/events/simple?per_page=1000",
+                        method: "GET",
+                        datatype: "json"
+                    }).done(function (response) {
+                        // Parse response into resource and event objects for FullCalendar
+                        // var resources = [];
+
+                        $.each(response.events, function (idx, e) {
+                            var spacer = document.createElement('strong');
+                            spacer.innerHTML = 'Event: ';
+
+                            var atSign = document.createElement('strong');
+                            atSign.innerText = ' @ ';
+                            
+                            var artistScheduleLink = document.createElement(
+                                'a');
+                            artistScheduleLink.innerHTML = 'Artist: ' + e.artist.name;
+                            artistScheduleLink.setAttribute('href',
+                                'https://chrisgundersen.github.io/MakeMusicDay/event-schedule/artists.html?cityId=' +
+                                cityId + '&artistId=' + e.artist.id);
+                            artistScheduleLink.setAttribute('target', '_blank');
+
+                            var venueScheduleLink = document.createElement(
+                                'a');
+                                venueScheduleLink.innerHTML = 'Venue: ' + e.venue.name;
+                                venueScheduleLink.setAttribute('href',
+                                'https://chrisgundersen.github.io/MakeMusicDay/event-schedule/venues.html?cityId=' +
+                                cityId + '&venueId=' + e.venue.id);
+                                venueScheduleLink.setAttribute('target', '_blank');
+
+                                // artistLinksDiv.appendChild(spacer) //
+                                cityDiv.appendChild(artistScheduleLink); //.appendChild(atSign)
+                                cityDiv.appendChild(venueScheduleLink);
+
+                                
+                        });
+
+                        // cityDiv.appendChild(artistLinksDiv);
+
+                        // cityDiv.appendChild(artistLinksDiv);
+                        // var cityMap = document.createElement('img');
+                        // cityMap.src = 'https://www.google.com/maps/@?api=1&map_action=map&center=' + e.latitude + ',' + e.longitude + '&zoom=' + e.map_zoom_level;
+
+                        // cityDiv.appendChild(cityMap);
+                        
+                        
+                    });
+
+                    citiesEl.appendChild(cityDiv);
+
+                });
+            });
+        })
+    </script>
+</head>
+
+<body>
+    <div id="cities" class="cities"></div>
+</body>
+
+</html>

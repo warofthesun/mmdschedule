@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- JS Dependencies -->
+    <script data-require="jquery@*" data-semver="3.1.1"
+        src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script data-require="moment.js@*" data-semver="2.14.1" src="https://npmcdn.com/moment@2.14.1"></script>
+    <script src="https://unpkg.com/@fullcalendar/core@4.4.0/main.min.js"></script>
+    <script src="https://unpkg.com/@fullcalendar/timeline@4.4.0/main.min.js"></script>
+    <script src="https://unpkg.com/@fullcalendar/resource-common@4.4.0/main.min.js"></script>
+    <script src="https://unpkg.com/@fullcalendar/resource-timeline@4.4.0/main.min.js"></script>
+    <script src="https://unpkg.com/popper.js/dist/umd/popper.min.js"></script>
+    <script src="https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js"></script>
+
+    <!-- CSS Styles -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@fullcalendar/core@4.4.0/main.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@fullcalendar/timeline@4.4.0/main.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@fullcalendar/resource-timeline@4.4.0/main.min.css" />
+    <link rel="stylesheet" href="css/schedule.css" />
+</head>
+
+<body>
+    <div id="genres"></div>
+    <div id='calendar'></div>
+</body>
+
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        $.ajax({
+            url: "https://ny.makemusic.dev/api/cities/events/simple",
+            method: "GET",
+            datatype: "json"
+        }).done(function (response) {
+            // Parse response into resource and event objects for FullCalendar
+            // var resources = [];
+            var musicGenres = [];
+            var events = [];
+            $.each(response.events, function (idx, e) {
+                e.artist.genres.forEach(genre => {
+                if (musicGenres.indexOf(genre) == -1) {
+                    musicGenres.push(genre);
+                }});
+                // resources.push({
+                //     id: e.artist.name,
+                //     title: e.artist.name,
+                //     description: e.artist.description,
+                //     facebook_url: e.artist.facebook_url,
+                //     image_url: e.artist.image_url,
+                //     instagram_url: e.artist.instagram_url,
+                //     soundcloud_url: e.artist.soundcloud_url,
+                //     twitter_url: e.artist.twitter_url,
+                //     url: e.artist.url,
+                //     youtube_url: e.artist.youtube_url
+                // });
+                events.push({
+                    start: e.start_time,
+                    end: e.end_time,
+                    // title: e.venue.name,
+                    title: e.artist.name + ' @ ' + e.venue.name,
+                    resourceId: e.artist.id,
+                    description: e.venue.description,
+                    // latitude: e.venue.latitude,
+                    // longitude: e.venue.longitude,
+                    artist: e.artist,
+                    url: 'https://www.google.com/maps/dir/?api=1&destination=' + e.venue
+                        .latitude + ',' + e.venue.longitude
+                });
+            });
+
+            // resources = resources.sort((a, b) => (a.title > b.title) ? 1 : -1)
+            musicGenres = musicGenres.sort();
+
+            var genreDiv = document.getElementById("genres");
+
+for (var i = 0; i < musicGenres.length; i++) {
+    var checkBox = document.createElement("input");
+    var label = document.createElement("label");
+    checkBox.type = "checkbox";
+    label.innerHTML = musicGenres[i].replace(/_/gi, '/');
+    label.setAttribute('for', musicGenres[i]);
+    checkBox.id = musicGenres[i];
+    checkBox.name = 'genre';
+    checkBox.value = musicGenres[i];
+    checkBox.checked = true;
+    genreDiv.appendChild(checkBox);
+    genreDiv.appendChild(label);
+    // label.appendChild(document.createTextNode(musicGenres[i]));
+}
+
+            events = events.sort((a, b) => (a.start > b.start) ? 1 : -1)
+            var firstEvent = events[0];
+
+            var firstTime = firstEvent.start.toString().substring(11, 13);
+
+            var currentYear = new Date().getFullYear();
+
+            var calendarEl = document.getElementById('calendar');
+
+            var resources = [];
+
+            events.forEach(event => {
+                if (!resources.find(({
+                        id
+                    }) => id == event.artist.id)) {
+                    resources.push({
+                        id: event.artist.id,
+                        title: event.artist.name,
+                        description: event.artist.description
+                    });
+                }
+            })
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                plugins: ['resourceTimeline'],
+                // header: {
+                //     left: 'today prev,next',
+                //     center: 'title',
+                //     right: 'resourceTimelineDay,resourceTimelineWeek'
+                // },
+                defaultView: 'resourceTimelineDay',
+                // defaultView: 'timelineDay',
+                defaultDate: currentYear + '-06-21',
+                displayEventTime: true,
+                eventOrder: 'start',
+                eventTimeFormat: {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    meridiem: 'narrow'
+                },
+                eventBackgroundColor: '#f15a22',
+                eventBorderColor: '#000000',
+                header: '',
+                minTime: firstTime + ':00:00',
+                slotHeight: 50,
+                slotWidth: 200,
+                resources: resources,
+                resourceAreaWidth: '20%',
+                resourceColumns: [{
+                    labelText: 'Artist',
+                    field: 'title'
+                }],
+                events: events,
+
+                eventClick: function (info) {
+                    info.jsEvent.preventDefault(); // don't let the browser navigate
+
+                    if (info.event.url) {
+                        window.open(info.event.url);
+                    }
+                },
+
+                // eventRender: function(info) {
+                //     var tooltip = new Tooltip(info.el, {
+                //     title: info.event.extendedProps.description,
+                //     placement: 'top',
+                //     trigger: 'hover',
+                //     container: 'body'
+                //     });
+
+                //     if (info.event.extendedProps.latitude && info.event.extendedProps.longitude) {
+
+                //     var mapPin = document.createElement('i');
+                //     mapPin.className = 'fa fa-map-marker';
+                //     mapPin.style = 'color: white';
+                //     mapPin.setAttribute('aria-hidden', true);
+
+                //     var directionsLink = document.createElement('a');
+                //     directionsLink.setAttribute('href', 'https://www.google.com/maps/dir/?api=1&destination=' + info.event.extendedProps.latitude + ',' + info.event.extendedProps.longitude);
+                //     directionsLink.setAttribute('target', '_blank');
+
+                //     directionsLink.appendChild(mapPin);
+
+                //     var spacer = document.createElement('strong');
+                //     spacer.innerText = ' | ';
+
+                //     info.el.querySelector('.fc-title')
+                //     .appendChild(spacer)
+                //     .appendChild(directionsLink);
+
+                //     }
+
+                // var mapPin = document.createElement('i');
+                // // questionMark.innerText = ' (?) ';
+                // mapPin.className = 'fa fa-directions';
+
+                // // var info = document.createElement('i');
+                // // info.className = 'fa fa-info';
+                // // info.setAttribute('aria-hidden', true);
+
+                // var spacer = document.createElement('strong');
+                // spacer.innerText = '  ';
+
+                // info.el.querySelector('.fc-title-wrap')
+                //     .appendChild(spacer)
+                //     .appendChild(mapPin);
+                // },
+
+                resourceRender: function (info) {
+                    info.el.querySelector('.fc-cell-text').innerHTML = '';
+
+
+
+
+                    // var questionMark = document.createElement('i');
+                    // // questionMark.innerText = ' (?) ';
+                    // questionMark.className = 'fa fa-info';
+
+                    // // var info = document.createElement('i');
+                    // // info.className = 'fa fa-info';
+                    // // info.setAttribute('aria-hidden', true);
+
+                    // var spacer = document.createElement('strong');
+                    // spacer.innerText = '  ';
+
+                    // info.el.querySelector('.fc-cell-text')
+                    //     .appendChild(spacer)
+                    //     .appendChild(questionMark);
+
+                    // var desc = '';
+
+
+
+                    // var tooltip = new Tooltip(questionMark, {
+                    //     title: function () {
+                    //         var rawHtml = '';
+                    //         //info.resource.extendedProps.description
+                    //         if (info.resource.extendedProps.image_url) {
+                    //             var imageDiv = document.createElement('div');
+                    //             //imageDiv.style = "height: 100px";
+                    //             var image = document.createElement('img');
+                    //             image.setAttribute('src', info.resource
+                    //                 .extendedProps.image_url);
+                    //             image.style =
+                    //                 'max-height: 100%; max-width: 100%';
+
+                    //             imageDiv.appendChild(image);
+
+                    //             rawHtml = imageDiv.outerHTML + '<br>';
+                    //         }
+                    //         if (info.resource.extendedProps.description) {
+                    //             rawHtml = rawHtml + info.resource.extendedProps
+                    //                 .description;
+                    //         }
+
+                    //         return rawHtml;
+                    //     },
+                    //     html: true,
+                    //     placement: 'top',
+                    //     trigger: 'hover',
+                    //     container: 'body'
+                    // });
+
+                    // if (info.resource.extendedProps.url) {
+                    //     var icon = document.createElement('i');
+                    //     icon.className = 'fa fa-link';
+                    //     icon.setAttribute('aria-hidden', true);
+
+                    //     var link = document.createElement('a');
+                    //     link.setAttribute('href', info.resource.extendedProps.url);
+                    //     link.setAttribute('target', '_blank');
+
+                    //     link.appendChild(icon);
+
+                    //     var spacer = document.createElement('strong');
+                    //     spacer.innerText = ' | ';
+
+                    //     info.el.querySelector('.fc-cell-text')
+                    //         .appendChild(spacer)
+                    //         .appendChild(link);
+                    // }
+
+                    // if (info.resource.extendedProps.facebook_url) {
+                    //     var icon = document.createElement('i');
+                    //     icon.className = 'fa fa-facebook';
+                    //     icon.setAttribute('aria-hidden', true);
+
+                    //     var link = document.createElement('a');
+                    //     link.setAttribute('href', info.resource.extendedProps.facebook_url);
+                    //     link.setAttribute('target', '_blank');
+
+                    //     link.appendChild(icon);
+
+                    //     var spacer = document.createElement('strong');
+                    //     spacer.innerText = ' | ';
+
+                    //     info.el.querySelector('.fc-cell-text')
+                    //         .appendChild(spacer)
+                    //         .appendChild(link);
+                    // }
+
+                    // if (info.resource.extendedProps.instagram_url) {
+                    //     var icon = document.createElement('i');
+                    //     icon.className = 'fa fa-instagram';
+                    //     icon.setAttribute('aria-hidden', true);
+
+                    //     var link = document.createElement('a');
+                    //     link.setAttribute('href', info.resource.extendedProps
+                    //     .instagram_url);
+                    //     link.setAttribute('target', '_blank');
+
+                    //     link.appendChild(icon);
+
+                    //     var spacer = document.createElement('strong');
+                    //     spacer.innerText = ' | ';
+
+                    //     info.el.querySelector('.fc-cell-text')
+                    //         .appendChild(spacer)
+                    //         .appendChild(link);
+                    // }
+
+                    // if (info.resource.extendedProps.soundcloud_url) {
+                    //     var icon = document.createElement('i');
+                    //     icon.className = 'fa fa-soundcloud';
+                    //     icon.setAttribute('aria-hidden', true);
+
+                    //     var link = document.createElement('a');
+                    //     link.setAttribute('href', info.resource.extendedProps
+                    //         .soundcloud_url);
+                    //     link.setAttribute('target', '_blank');
+
+                    //     link.appendChild(icon);
+
+                    //     var spacer = document.createElement('strong');
+                    //     spacer.innerText = ' | ';
+
+                    //     info.el.querySelector('.fc-cell-text')
+                    //         .appendChild(spacer)
+                    //         .appendChild(link);
+                    // }
+
+                    // if (info.resource.extendedProps.twitter_url) {
+                    //     var icon = document.createElement('i');
+                    //     icon.className = 'fa fa-twitter';
+                    //     icon.setAttribute('aria-hidden', true);
+
+                    //     var link = document.createElement('a');
+                    //     link.setAttribute('href', info.resource.extendedProps.twitter_url);
+                    //     link.setAttribute('target', '_blank');
+
+                    //     link.appendChild(icon);
+
+                    //     var spacer = document.createElement('strong');
+                    //     spacer.innerText = ' | ';
+
+                    //     info.el.querySelector('.fc-cell-text')
+                    //         .appendChild(spacer)
+                    //         .appendChild(link);
+                    // }
+
+                    // if (info.resource.extendedProps.youtube_url) {
+                    //     var icon = document.createElement('i');
+                    //     icon.className = 'fa fa-youtube';
+                    //     icon.setAttribute('aria-hidden', true);
+
+                    //     var link = document.createElement('a');
+                    //     link.setAttribute('href', info.resource.extendedProps.youtube_url);
+                    //     link.setAttribute('target', '_blank');
+
+                    //     link.appendChild(icon);
+
+                    //     var spacer = document.createElement('strong');
+                    //     spacer.innerText = ' | ';
+
+                    //     info.el.querySelector('.fc-cell-text')
+                    //         .appendChild(spacer)
+                    //         .appendChild(link);
+                    // }
+                }
+            });
+
+            calendar.render();
+        });
+    });
+</script>
+
+</html>

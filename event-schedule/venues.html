@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+    <!-- JS Dependencies -->
+    <script data-require="jquery@*" data-semver="3.1.1"
+        src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script data-require="moment.js@*" data-semver="2.14.1" src="https://npmcdn.com/moment@2.14.1"></script>
+    <script src="https://unpkg.com/@fullcalendar/core@4.4.0/main.min.js"></script>
+    <script src="https://unpkg.com/@fullcalendar/interaction@4.4.0/main.min.js"></script>
+    <script src="https://unpkg.com/@fullcalendar/timeline@4.4.0/main.min.js"></script>
+    <script src="https://unpkg.com/@fullcalendar/resource-common@4.4.0/main.min.js"></script>
+    <script src="https://unpkg.com/@fullcalendar/resource-timeline@4.4.0/main.min.js"></script>
+    <script src="https://unpkg.com/popper.js/dist/umd/popper.min.js"></script>
+    <script src="https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.31/moment-timezone-with-data-10-year-range.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/4.2.0/moment-timezone/main.min.js"></script>
+
+    <!-- CSS Styles -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@fullcalendar/core@4.4.0/main.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@fullcalendar/timeline@4.4.0/main.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@fullcalendar/resource-timeline@4.4.0/main.min.css" />
+    <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+    <!-- <div id="genres"></div>
+    <div id='calendar'></div> -->
+    <div class="header-grid">
+        <!-- <div id="sortDiv">
+            <button id='toggleSort' value="">Sort by artist</button>
+        </div>
+        <div id="genreDiv">
+            Genre:
+            <select id='genre-selector'>
+                <option selected value='_all'>All genres</option>
+            </select>
+        </div> -->
+
+        <div class="timeZoneDiv">
+            Time Zone:
+            <select id='time-zone-selector'>
+                <option value='America/New_York'>Eastern Time (America/New York)</option>
+                <option value='America/Chicago'>Central Time (America/Chicago)</option>
+                <option value='America/Denver'>Mountain Time (America/Denver)</option>
+                <option value='America/Los_Angeles'>Pacific Time (America/Los Angeles)</option>
+                <!-- <option value='UTC'>UTC</option> -->
+            </select>
+        </div>
+    </div>
+
+    <div id='mobile-schedule-view-container' class='mobile-schedule-view-container'>
+
+    </div>
+    <!-- <div id='top'>
+
+        <div style='float:left'>
+
+        </div>
+
+        <div style='margin-left: 20px'>
+
+        </div>
+
+        <div style='float:right'>
+            <span id='loading'>loading...</span>
+
+        </div>
+
+        <div style='clear:both'></div>
+    </div> -->
+    <div id='calendar'></div>
+</body>
+
+<script type="text/javascript">
+var musicGenres = [];
+
+var cities = [];
+var selectedCity;
+var events = [];
+var resources = [];
+var filteredResources = [];
+var timeZoneGuess = moment.tz.guess();
+
+    function loadMobileView (resources, events, selectedCity, timeZone) {
+        var mobileScheduleViewContainer = document.getElementById(
+                    'mobile-schedule-view-container');
+
+                    $('#mobile-schedule-view-container').empty();
+
+                resources.forEach(artist => {
+
+
+                    var mobileArtistDiv = document.createElement('div');
+                    mobileArtistDiv.id = 'mobile-artist-' + artist.id;
+                    mobileArtistDiv.className = 'mobile-artist-div';
+
+                    // var mobileArtistImage = document.createElement('img');
+                    // mobileArtistImage.id = 'mobile-artist-img-' + artist.id;
+                    // mobileArtistImage.className = 'mobile-artist-img';
+                    // mobileArtistImage.setAttribute('src', (artist.image_url ??
+                    //     selectedCity.logo_url));
+                    // mobileArtistDiv.appendChild(mobileArtistImage);
+
+                    var mobileArtistName = document.createElement('span');
+                    mobileArtistName.id = 'mobile-artist-name-' + artist.id;
+                    mobileArtistName.className = 'mobile-artist-name';
+                    mobileArtistName.innerHTML = artist.title;
+                    mobileArtistDiv.appendChild(mobileArtistName);
+
+                    // if (artist.genres) {
+                    //     var mobileArtistGenreDiv = document.createElement('div');
+                    //     mobileArtistGenreDiv.id = 'mobile-artist-genre-div-' + artist
+                    //     .id;
+                    //     mobileArtistGenreDiv.className = 'mobile-artist-genre-div';
+                    //     artist.genres.forEach(genre => {
+                    //         var mobileArtistGenre = document.createElement(
+                    //             'span');
+                    //         mobileArtistGenre.className = 'mobile-artist-genre';
+                    //         mobileArtistGenre.innerHTML = genre.replace(/_/gi,
+                    //             '/');;
+
+                    //         mobileArtistGenreDiv.appendChild(mobileArtistGenre);
+                    //     });
+
+                    //     mobileArtistDiv.appendChild(mobileArtistGenreDiv);
+                    // }
+
+                    if (artist.description) {
+                        var mobileArtistDescription = document.createElement('p');
+                        mobileArtistDescription.innerHTML = artist.description;
+                        mobileArtistDiv.appendChild(mobileArtistDescription);
+                    }
+
+                    var mobileArtistLinksDiv = document.createElement('div');
+                    mobileArtistLinksDiv.id = 'mobile-artist-links-div=' + artist.id;
+                    mobileArtistLinksDiv.className = 'mobile-artist-links-div';
+
+                    if (artist.url) {
+                        var icon = document.createElement('i');
+                        icon.className = 'fa fa-link mobile-artist-link';
+                        icon.setAttribute('aria-hidden', true);
+                        icon.setAttribute('alt', 'Artist Homepage');
+                        icon.setAttribute('title', 'Artist Homepage');
+
+                        var link = document.createElement('a');
+                        link.setAttribute('href', artist.url);
+                        link.setAttribute('target', '_blank');
+
+                        link.appendChild(icon);
+
+                        mobileArtistLinksDiv.appendChild(link);
+                    }
+
+                    if (artist.facebook_url) {
+                        var icon = document.createElement('i');
+                        icon.className = 'fa fa-facebook mobile-artist-link';
+                        icon.setAttribute('aria-hidden', true);
+                        icon.setAttribute('alt', 'Facebook');
+                        icon.setAttribute('title', 'Facebook');
+
+                        var link = document.createElement('a');
+                        link.setAttribute('href', artist.facebook_url);
+                        link.setAttribute('target', '_blank');
+
+                        link.appendChild(icon);
+
+                        mobileArtistLinksDiv.appendChild(link);
+                    }
+
+                    if (artist.instagram_url) {
+                        var icon = document.createElement('i');
+                        icon.className = 'fa fa-instagram mobile-artist-link';
+                        icon.setAttribute('aria-hidden', true);
+                        icon.setAttribute('alt', 'Instagram');
+                        icon.setAttribute('title', 'Instagram');
+
+                        var link = document.createElement('a');
+                        link.setAttribute('href', artist.instagram_url);
+                        link.setAttribute('target', '_blank');
+
+                        link.appendChild(icon);
+
+                        mobileArtistLinksDiv.appendChild(link);
+                    }
+
+                    if (artist.soundcloud_url) {
+                        var icon = document.createElement('i');
+                        icon.className = 'fa fa-soundcloud mobile-artist-link';
+                        icon.setAttribute('aria-hidden', true);
+                        icon.setAttribute('alt', 'SoundCloud');
+                        icon.setAttribute('title', 'SoundCloud');
+
+                        var link = document.createElement('a');
+                        link.setAttribute('href', artist.soundcloud_url);
+                        link.setAttribute('target', '_blank');
+
+                        link.appendChild(icon);
+
+                        mobileArtistLinksDiv.appendChild(link);
+                    }
+
+                    if (artist.twitter_url) {
+                        var icon = document.createElement('i');
+                        icon.className = 'fa fa-twitter mobile-artist-link';
+                        icon.setAttribute('aria-hidden', true);
+                        icon.setAttribute('alt', 'Twitter');
+                        icon.setAttribute('title', 'Twitter');
+
+                        var link = document.createElement('a');
+                        link.setAttribute('href', artist.twitter_url);
+                        link.setAttribute('target', '_blank');
+
+                        link.appendChild(icon);
+
+                        mobileArtistLinksDiv.appendChild(link);
+                    }
+
+                    if (artist.youtube_url) {
+                        var icon = document.createElement('i');
+                        icon.className = 'fa fa-youtube mobile-artist-link';
+                        icon.setAttribute('aria-hidden', true);
+                        icon.setAttribute('alt', 'YouTube');
+                        icon.setAttribute('title', 'YouTube');
+
+                        var link = document.createElement('a');
+                        link.setAttribute('href', artist.youtube_url);
+                        link.setAttribute('target', '_blank');
+
+                        link.appendChild(icon);
+
+                        mobileArtistLinksDiv.appendChild(link);
+                    }
+
+                    mobileArtistDiv.appendChild(mobileArtistLinksDiv);
+
+                    var artistEvents = events.filter(function (e) {
+                        return e.resourceId == artist.id;
+                    });
+
+                    if (artistEvents) {
+                        var mobileArtistEventDiv = document.createElement('div');
+                        mobileArtistEventDiv.id = 'mobile-artist-event-div-' + artist
+                        .id;
+                        mobileArtistEventDiv.className = 'mobile-artist-event-div';
+
+                        artistEvents.forEach(evt => {
+                            var momentStart = moment.utc(evt.start);
+                            var momentEnd = moment.utc(evt.end);
+                            var artistEvent = document.createElement('a');
+                            artistEvent.id = 'mobile-artist-event-id-' + evt.id;
+                            artistEvent.className = 'mobile-artist-event';
+                            artistEvent.innerHTML = momentStart.tz(timeZone).format('ha') + '-' +
+                                momentEnd.tz(timeZone).format('ha') +
+                                ' ' + momentStart.tz(timeZone).format(
+                                    'z') + ': ' + evt.title;
+                            artistEvent.setAttribute('href', evt.url);
+                            artistEvent.setAttribute('target', '_blank');
+                            artistEvent.setAttribute('data-utc-start', momentStart.utc());
+                            artistEvent.setAttribute('data-utc-end', momentEnd.utc());
+
+                            mobileArtistEventDiv.appendChild(artistEvent);
+                        });
+
+                        mobileArtistDiv.appendChild(mobileArtistEventDiv);
+                    }
+
+                    mobileScheduleViewContainer.appendChild(mobileArtistDiv);
+                });    
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var timeZoneSelectorEl = document.getElementById('time-zone-selector');
+        // var toggleSortDiv = document.getElementById('sortDiv');
+        // var sortToggleButton = document.getElementById('toggleSort');
+        // var genreSelectorEl = document.getElementById('genre-selector');
+        // var genreSelectorDiv = document.getElementById('genreDiv');
+        var loadingEl = document.getElementById('loading');
+        // var cityNameEl = document.getElementById('cityName');
+        // var contactUsEl = document.getElementById('contact-us');
+        var params = new URLSearchParams(window.location.search);
+        // var b = moment.utc("2013-11-18 11:55").tz("America/Toronto");
+        var currentYear = new Date().getFullYear();
+        var firstEvent;
+
+        
+
+        // if (params.has('artistId')) {
+        //     toggleSortDiv.hidden = true;
+        //     genreSelectorDiv.hidden = true;
+        // }
+
+        $.ajax({
+            url: "https://ny.makemusicday.org/api/cities",
+            method: "GET",
+            datatype: "json"
+        }).done(function (response) {
+            $.each(response, function (idx, e) {
+                cities.push({
+                    accent_color: e.accent_color,
+                    base_url: e.base_url,
+                    contact_us_url: e.contact_us_url,
+                    id: e.id,
+                    logo_url: e.logo_url,
+                    latitude: e.latitude,
+                    longitude: e.longitude,
+                    name: e.name,
+                    primary_button_color: e.primary_button_color,
+                    secondary_button_color: e.secondary_button_color,
+                    timezone: e.timezone,
+                    url: e.url
+                });
+            });
+        }).then(function () {
+            var selectedCityId =
+                "18aba1da-fd86-4884-91aa-a9c71636db0d"; // New York City in prod
+            // "1f0e5787-bf54-4fcd-b414-63a9b7494692" // "09439b48-377b-469c-9a9c-a05b294d537e"; // Test city, will be overwritten if real param is supplied
+
+            if (params.has('cityId')) {
+                selectedCityId = params.get('cityId');
+            }
+
+            var selectedCity = cities.find(({
+                id
+            }) => id === selectedCityId);
+            // cityNameEl.innerHTML = selectedCity.name;
+            // contactUsEl.setAttribute('href', selectedCity.contact_us_url);
+
+            
+
+            var timeZoneGuessOption = document.createElement('option');
+            timeZoneGuessOption.text = 'Your local timezone (best guess: "' + timeZoneGuess + '")';
+            timeZoneGuessOption.value = timeZoneGuess;
+            timeZoneGuessOption.selected = true;
+            timeZoneSelectorEl.add(timeZoneGuessOption);
+
+
+
+
+
+
+            $.ajax({
+                url: selectedCity.base_url + "/api/cities/events/simple?per_page=1000",
+                method: "GET",
+                datatype: "json"
+            }).done(function (response) {
+                // Parse response into resource and event objects for FullCalendar
+                // var resources = [];
+
+                $.each(response.events, function (idx, e) {
+                    if (!params.has('venueId')) {
+                        // e.artist.genres.forEach(genre => {
+                        //     if (musicGenres.indexOf(genre) == -1) {
+                        //         musicGenres.push(genre);
+                        //     }
+                        // });
+                        // resources.push({
+                        //     id: e.artist.name,
+                        //     title: e.artist.name,
+                        //     description: e.artist.description,
+                        //     facebook_url: e.artist.facebook_url,
+                        //     image_url: e.artist.image_url,
+                        //     instagram_url: e.artist.instagram_url,
+                        //     soundcloud_url: e.artist.soundcloud_url,
+                        //     twitter_url: e.artist.twitter_url,
+                        //     url: e.artist.url,
+                        //     youtube_url: e.artist.youtube_url
+                        // });
+                        events.push({
+                            start: e.utc_start_time,
+                            end: e.utc_end_time,
+                            // title: e.venue.name,
+                            title: e.artist.name + ' @ ' + e.venue.name,
+                            artist: e.artist,
+                            resourceId: e.venue.id,
+                            description: e.venue.description,
+                            latitude: e.venue.latitude,
+                            longitude: e.venue.longitude,
+                            venue: e.venue,
+                            address: e.venue.address,
+                            livestream_url: e.livestream_url,
+                            url: e.livestream_url ??
+                                'https://www.google.com/maps/dir/?api=1&destination=' +
+                                e.venue.latitude + ',' + e.venue.longitude
+                        });
+                    } else {
+                        if (params.get('venueId') === e.venue.id) {
+                            document.body.classList.add("single-artist-schedule");
+
+                            events.push({
+                                start: e.utc_start_time,
+                                end: e.utc_end_time,
+                                // title: e.venue.name,
+                                title: e.artist.name + ' @ ' + e.venue.name,
+                                resourceId: e.venue.id,
+                                description: e.venue.description,
+                                latitude: e.venue.latitude,
+                                longitude: e.venue.longitude,
+                                artist: e.artist,
+                                venue: e.venue,
+                                address: e.venue.address,
+                                livestream_url: e.livestream_url,
+                                url: e.livestream_url ??
+                                    'https://www.google.com/maps/dir/?api=1&destination=' +
+                                    e.venue.latitude + ',' + e.venue.longitude
+                            });
+                        }
+                    }
+                });
+
+                events = events.sort((a, b) => (a.start > b.start) ? 1 : -1)
+                firstEvent = moment.utc(events[0].start);
+                firstEvent.tz(timeZoneGuess);
+
+                // var firstTime = firstEvent.start.toString().substring(11, 13);
+
+                var calendarEl = document.getElementById('calendar');
+
+                var resources = [];
+
+                events.forEach(event => {
+                    if (!resources.find(({
+                            id
+                        }) => id == event.venue.id)) {
+                        if (!params.has('venueId')) {
+                            resources.push({
+                                id: event.venue.id,
+                                title: event.venue.name,
+                                description: event.venue.venue_type,
+                                // image_url: event.artist.image_url,
+                                // genres: event.artist.genres,
+                                url: event.venue.url,
+                                facebook_url: event.venue.facebook_url,
+                                instagram_url: event.venue.instagram_url,
+                                // soundcloud_url: event.artist.soundcloud_url,
+                                twitter_url: event.venue.twitter_url,
+                                youtube_url: event.venue.youtube_url
+                            });
+                        } else {
+                            if (event.venue.id === params.get('venueId')) {
+                                resources.push({
+                                    id: event.venue.id,
+                                title: event.venue.name,
+                                description: event.venue.venue_type,
+                                // image_url: event.artist.image_url,
+                                // genres: event.artist.genres,
+                                url: event.venue.url,
+                                facebook_url: event.venue.facebook_url,
+                                instagram_url: event.venue.instagram_url,
+                                // soundcloud_url: event.artist.soundcloud_url,
+                                twitter_url: event.venue.twitter_url,
+                                youtube_url: event.venue.youtube_url
+                                });
+                            }
+                        }
+
+                    }
+                })
+
+                
+                loadMobileView(resources, events, selectedCity, timeZoneGuess);
+
+
+                var timeZoneSelectorEl = document.getElementById(
+                    'mobile-schedule-view-container');
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
+                    plugins: ['resourceTimeline', 'momentTimezone'],
+                    // header: {
+                    //     left: 'today prev,next',
+                    //     center: 'title',
+                    //     right: 'resourceTimelineDay,resourceTimelineWeek'
+                    // },
+                    defaultView: 'resourceTimelineDay',
+                    // defaultView: 'timelineDay',
+                    defaultDate: currentYear + '-06-21',
+                    displayEventTime: true,
+                    eventOrder: 'start',
+                    eventTimeFormat: {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        meridiem: 'narrow' //,
+                        // timeZoneName: 'short'
+                    },
+                    eventBackgroundColor: '#f15a22',
+                    eventBorderColor: '#000000',
+                    header: '',
+                    loading: function (bool) {
+                        if (bool) {
+                            loadingEl.style.display = 'inline'; // show
+                        } else {
+                            loadingEl.style.display = 'none'; // hide
+                        }
+                    },
+                    // minTime: firstTime + ':00:00',
+                    minTime: firstEvent.hours().toString() + ':00:00',
+                    slotHeight: 25,
+                    slotWidth: 150,
+                    timeZone: timeZoneGuess,
+                    resources: resources,
+                    // resources: function (fetchInfo, successCallback, failureCallback) {
+                    //     if (genreSelectorEl.value === '_all') {
+                    //         successCallback(resources);
+                    //     } else {
+                    //         filteredResources = [];
+                    //         resources.forEach(resource => {
+                    //             if (resource.genres.indexOf(genreSelectorEl
+                    //                     .value) >
+                    //                 -1) {
+                    //                 filteredResources.push(resource);
+                    //             }
+                    //         })
+
+                    //         successCallback(filteredResources);
+                    //     }
+                    //     // somethingAsynchonous({
+                    //     //     start: fetchInfo.start,
+                    //     //     end: fetchInfo.end,
+                    //     //     timeZone: fetchInfo.timeZone
+                    //     // }, function (resources) {
+                    //     //     successCallback(resources);
+                    //     // })
+                    // },
+                    resourceAreaWidth: '35%',
+                    resourceColumns: [{
+                        labelText: 'Venue',
+                        field: 'name'
+                    }],
+                    events: events,
+
+                    eventClick: function (info) {
+                        info.jsEvent
+                            .preventDefault(); // don't let the browser navigate
+
+                        if (info.event.url) {
+                            window.open(info.event.url);
+                        }
+                    },
+
+                    eventRender: function (info) {
+                        if (info.event.extendedProps.livestream_url || info.event
+                            .extendedProps.address) {
+                            var spacer = document.createElement('span');
+                            spacer.innerText = ' ';
+
+                            var location = document.createElement('span');
+                            location.className = 'eventLocationInfo';
+                            location.innerHTML = (info.event.extendedProps
+                                .livestream_url ? 'streaming live' : info.event
+                                .extendedProps.address)
+
+                            // var navigationUrl = document.createElement('a');
+                            // navigationUrl.setAttribute('target', '_blank');
+                            // navigationUrl.className = 'navigationUrl';
+
+                            // if (info.event.extendedProps.livestream_url) {
+                            //     navigationUrl.innerHTML = 'streaming live';
+                            //     navigationUrl.setAttribute('href', info.event.extendedProps.livestream_url);
+                            // } else {
+                            //     navigationUrl.innerHTML = info.event.extendedProps.address;
+                            //     navigationUrl.setAttribute('href', 'https://www.google.com/maps/dir/?api=1&destination=' + info.event.extendedProps.latitude + ',' + info.event.extendedProps.longitude);
+                            // }
+
+
+                            var titleEl = info.el.querySelector('.fc-title');
+                            titleEl.appendChild(spacer).appendChild(
+                            location); // .appendChild(navigationUrl);
+                        }
+                    },
+
+                    // eventRender: function(info) {
+                    //     var tooltip = new Tooltip(info.el, {
+                    //     title: info.event.extendedProps.description,
+                    //     placement: 'top',
+                    //     trigger: 'hover',
+                    //     container: 'body'
+                    //     });
+
+                    //     if (info.event.extendedProps.latitude && info.event.extendedProps.longitude) {
+
+                    //     var mapPin = document.createElement('i');
+                    //     mapPin.className = 'fa fa-map-marker';
+                    //     mapPin.style = 'color: white';
+                    //     mapPin.setAttribute('aria-hidden', true);
+
+                    //     var directionsLink = document.createElement('a');
+                    //     directionsLink.setAttribute('href', 'https://www.google.com/maps/dir/?api=1&destination=' + info.event.extendedProps.latitude + ',' + info.event.extendedProps.longitude);
+                    //     directionsLink.setAttribute('target', '_blank');
+
+                    //     directionsLink.appendChild(mapPin);
+
+                    //     var spacer = document.createElement('strong');
+                    //     spacer.innerText = ' | ';
+
+                    //     info.el.querySelector('.fc-title')
+                    //     .appendChild(spacer)
+                    //     .appendChild(directionsLink);
+
+                    //     }
+
+                    // var mapPin = document.createElement('i');
+                    // // questionMark.innerText = ' (?) ';
+                    // mapPin.className = 'fa fa-directions';
+
+                    // // var info = document.createElement('i');
+                    // // info.className = 'fa fa-info';
+                    // // info.setAttribute('aria-hidden', true);
+
+                    // var spacer = document.createElement('strong');
+                    // spacer.innerText = '  ';
+
+                    // info.el.querySelector('.fc-title-wrap')
+                    //     .appendChild(spacer)
+                    //     .appendChild(mapPin);
+                    // },
+
+                    resourceRender: function (info) {
+                        // var includeResource = genreSelectorEl.value === '_all' || info.resource.extendedProps.genres.includes(genreSelectorEl.value)
+                        // if (!includeResource) {
+                        //     var resource = calendar.getResourceById(info.resource.id);
+                        //     resource.remove();
+                        // }
+                        info.el.querySelector('.fc-cell-text').innerHTML = '';
+
+                        var artistProfileDiv = document.createElement('div');
+                        artistProfileDiv.id = 'artist-profile';
+
+                        info.el.querySelector('.fc-cell-text').appendChild(
+                            artistProfileDiv);
+
+                        // if (info.resource.extendedProps.image_url) {
+                        // var artistProfileImageDiv = document.createElement('div');
+                        // artistProfileImageDiv.id = 'artist-profile-image';
+                        // if (info.resource.extendedProps.image_url) {
+                        //     artistProfileImageDiv.style = 'background-image: url(' +
+                        //         info.resource.extendedProps.image_url + ');'
+                        // } else {
+                        //     artistProfileImageDiv.style = 'background-image: url(' +
+                        //         selectedCity.logo_url + ');'
+                        // }
+                        // // artistProfileImageDiv.style = 'height: 100px'
+
+                        // // var artistProfileImagePositioner = document.createElement('div');
+                        // // artistProfileImagePositioner.id = 'artist-profile-image-positioner';
+
+                        // // var artistProfileImage = document.createElement('img');
+                        // // artistProfileImage.className = 'artist-profile-image-crop-square';
+                        // // artistProfileImage.setAttribute('src', info.resource.extendedProps.image_url);
+                        // // // artistProfileImage.style = 'max-height: 100%; max-width: 100%';
+                        // // artistProfileImage.alt = info.resource.title;
+
+                        // // artistProfileImagePositioner.appendChild(artistProfileImage);
+                        // // artistProfileImageDiv.appendChild(artistProfileImagePositioner);
+                        // artistProfileDiv.appendChild(artistProfileImageDiv);
+                        // }
+
+                        var artistProfileDetailsDiv = document.createElement('div');
+                        artistProfileDetailsDiv.id = 'artist-profile-details';
+
+                        var artistName = document.createElement('h7');
+                        artistName.innerHTML = info.resource.title;
+
+                        artistProfileDetailsDiv.appendChild(artistName);
+
+                        // if (info.resource.extendedProps.description) {
+                        //     var questionMark = document.createElement('i');
+                        //     // questionMark.innerText = ' (?) ';
+                        //     questionMark.className = 'fa fa-info';
+
+                        //     // var info = document.createElement('i');
+                        //     // info.className = 'fa fa-info';
+                        //     // info.setAttribute('aria-hidden', true);
+
+                        //     var spacer = document.createElement('strong');
+                        //     spacer.innerText = '  ';
+
+                        //     artistProfileDetailsDiv.appendChild(spacer)
+                        //         .appendChild(questionMark);
+
+                        //     var tooltip = new Tooltip(questionMark, {
+                        //         title: info.resource.extendedProps
+                        //             .description,
+                        //         html: true,
+                        //         placement: 'top',
+                        //         trigger: 'hover',
+                        //         container: 'body'
+                        //     });
+                        // }
+
+                        // var artistDescription = document.createElement('p');
+                        // artistDescription.innerHTML = info.resource.extendedProps.description;
+
+
+
+                        artistProfileDiv.appendChild(artistProfileDetailsDiv);
+
+                        // var genreGroup = document.createElement('div');
+                        // genreGroup.className = 'genre-item-group';
+
+                        // info.resource.extendedProps.genres.forEach(genre => {
+                        //     var genreItem = document.createElement('href');
+                        //     genreItem.className = 'genre-item';
+                        //     genreItem.innerHTML = genre.replace(/_/gi, '/');
+                        //     genreGroup.appendChild(genreItem);
+                        // })
+
+                        // artistProfileDetailsDiv.appendChild(genreGroup);
+
+                        // var questionMark = document.createElement('i');
+                        // // questionMark.innerText = ' (?) ';
+                        // questionMark.className = 'fa fa-info';
+
+                        // // var info = document.createElement('i');
+                        // // info.className = 'fa fa-info';
+                        // // info.setAttribute('aria-hidden', true);
+
+                        // var spacer = document.createElement('strong');
+                        // spacer.innerText = '  ';
+
+                        // info.el.querySelector('.fc-cell-text')
+                        //     .appendChild(spacer)
+                        //     .appendChild(questionMark);
+
+                        // var desc = '';
+
+
+
+                        // var tooltip = new Tooltip(questionMark, {
+                        //     title: function () {
+                        //         var rawHtml = '';
+                        //         //info.resource.extendedProps.description
+                        //         if (info.resource.extendedProps.image_url) {
+                        //             var imageDiv = document.createElement('div');
+                        //             //imageDiv.style = "height: 100px";
+                        //             var image = document.createElement('img');
+                        //             image.setAttribute('src', info.resource
+                        //                 .extendedProps.image_url);
+                        //             image.style =
+                        //                 'max-height: 100%; max-width: 100%';
+
+                        //             imageDiv.appendChild(image);
+
+                        //             rawHtml = imageDiv.outerHTML + '<br>';
+                        //         }
+                        //         if (info.resource.extendedProps.description) {
+                        //             rawHtml = rawHtml + info.resource.extendedProps
+                        //                 .description;
+                        //         }
+
+                        //         return rawHtml;
+                        //     },
+                        //     html: true,
+                        //     placement: 'top',
+                        //     trigger: 'hover',
+                        //     container: 'body'
+                        // });
+
+                        if (info.resource.extendedProps.description) {
+
+                            var maxDescriptionLength = 200;
+
+                            var descriptionDiv = document.createElement('div');
+                            descriptionDiv.className = 'artist-description';
+                            var descriptionText = document.createElement('p');
+                            descriptionText.innerHTML = info.resource.extendedProps
+                                .description.substring(0, maxDescriptionLength);
+
+                            if (info.resource.extendedProps.description.length >
+                                maxDescriptionLength) {
+                                var readMore = document.createElement('span')
+                                readMore.innerHTML = '... (read more)';
+
+                                var tooltip = new Tooltip(readMore, {
+                                    title: info.resource.extendedProps
+                                        .description,
+                                    html: true,
+                                    placement: 'top',
+                                    trigger: 'hover',
+                                    container: 'body'
+                                });
+
+                                descriptionText.appendChild(readMore);
+
+                            }
+
+
+                            descriptionDiv.appendChild(descriptionText);
+
+                            artistProfileDetailsDiv.appendChild(descriptionDiv);
+                        }
+
+                        var linksDiv = document.createElement('div');
+                        linksDiv.className = 'links';
+
+                        if (info.resource.extendedProps.url) {
+                            var icon = document.createElement('i');
+                            icon.className = 'fa fa-link artist-link';
+                            icon.setAttribute('aria-hidden', true);
+                            icon.setAttribute('alt', 'Artist Homepage');
+                            icon.setAttribute('title', 'Artist Homepage');
+
+                            var link = document.createElement('a');
+                            link.setAttribute('href', info.resource.extendedProps
+                                .url);
+                            link.setAttribute('target', '_blank');
+
+                            link.appendChild(icon);
+
+                            var spacer = document.createElement('strong');
+                            spacer.innerText = '  ';
+
+                            linksDiv.appendChild(spacer).appendChild(link);
+                        }
+
+                        if (info.resource.extendedProps.facebook_url) {
+                            var icon = document.createElement('i');
+                            icon.className = 'fa fa-facebook artist-link';
+                            icon.setAttribute('aria-hidden', true);
+                            icon.setAttribute('alt', 'Facebook');
+                            icon.setAttribute('title', 'Facebook');
+
+                            var link = document.createElement('a');
+                            link.setAttribute('href', info.resource.extendedProps
+                                .facebook_url);
+                            link.setAttribute('target', '_blank');
+
+                            link.appendChild(icon);
+
+                            var spacer = document.createElement('strong');
+                            spacer.innerText = '  ';
+
+                            linksDiv.appendChild(spacer).appendChild(link);
+                        }
+
+                        if (info.resource.extendedProps.instagram_url) {
+                            var icon = document.createElement('i');
+                            icon.className = 'fa fa-instagram artist-link';
+                            icon.setAttribute('aria-hidden', true);
+                            icon.setAttribute('alt', 'Instagram');
+                            icon.setAttribute('title', 'Instagram');
+
+                            var link = document.createElement('a');
+                            link.setAttribute('href', info.resource.extendedProps
+                                .instagram_url);
+                            link.setAttribute('target', '_blank');
+
+                            link.appendChild(icon);
+
+                            var spacer = document.createElement('strong');
+                            spacer.innerText = '  ';
+
+                            linksDiv.appendChild(spacer).appendChild(link);
+                        }
+
+                        if (info.resource.extendedProps.soundcloud_url) {
+                            var icon = document.createElement('i');
+                            icon.className = 'fa fa-soundcloud artist-link';
+                            icon.setAttribute('aria-hidden', true);
+                            icon.setAttribute('alt', 'SoundCloud');
+                            icon.setAttribute('title', 'SoundCloud');
+
+                            var link = document.createElement('a');
+                            link.setAttribute('href', info.resource.extendedProps
+                                .soundcloud_url);
+                            link.setAttribute('target', '_blank');
+
+                            link.appendChild(icon);
+
+                            var spacer = document.createElement('strong');
+                            spacer.innerText = '  ';
+
+                            linksDiv.appendChild(spacer).appendChild(link);
+                        }
+
+                        if (info.resource.extendedProps.twitter_url) {
+                            var icon = document.createElement('i');
+                            icon.className = 'fa fa-twitter artist-link';
+                            icon.setAttribute('aria-hidden', true);
+                            icon.setAttribute('alt', 'Twitter');
+                            icon.setAttribute('title', 'Twitter');
+
+                            var link = document.createElement('a');
+                            link.setAttribute('href', info.resource.extendedProps
+                                .twitter_url);
+                            link.setAttribute('target', '_blank');
+
+                            link.appendChild(icon);
+
+                            var spacer = document.createElement('strong');
+                            spacer.innerText = '  ';
+
+                            linksDiv.appendChild(spacer).appendChild(link);
+                        }
+
+                        if (info.resource.extendedProps.youtube_url) {
+                            var icon = document.createElement('i');
+                            icon.className = 'fa fa-youtube artist-link';
+                            icon.setAttribute('aria-hidden', true);
+                            icon.setAttribute('alt', 'YouTube');
+                            icon.setAttribute('title', 'YouTube');
+
+                            var link = document.createElement('a');
+                            link.setAttribute('href', info.resource.extendedProps
+                                .youtube_url);
+                            link.setAttribute('target', '_blank');
+
+                            link.appendChild(icon);
+
+                            var spacer = document.createElement('strong');
+                            spacer.innerText = '  ';
+
+                            linksDiv.appendChild(spacer).appendChild(link);
+                        }
+
+                        artistProfileDetailsDiv.appendChild(linksDiv);
+                    }
+                });
+
+                calendar.render();
+
+                $(document).on('change','#time-zone-selector', function () {
+                    var newFirstTime = moment.utc(events[0].start).tz(this.value);
+
+                    // var res = getResourcesFilteredByGenre();
+                    loadMobileView(resources, events, selectedCity, this.value);
+
+                    calendar.setOption('minTime', newFirstTime.hours().toString() +
+                        ':00:00');
+                    calendar.setOption('timeZone', this.value);
+                });
+
+                // when the timezone selector changes, dynamically change the calendar option
+                // timeZoneSelectorEl.addEventListener('change', function () {
+                //     var newFirstTime = moment.utc(events[0].start).tz(this.value);
+
+                //     calendar.setOption('minTime', newFirstTime.hours().toString() +
+                //         ':00:00');
+                //     calendar.setOption('timeZone', this.value);
+
+                //     // calendar.render();
+                // });
+
+                // sortToggleButton.addEventListener('click', function () {
+                //     if (this.value === '') {
+                //         this.value = 'artist';
+                //         this.innerHTML = 'Sort by start time';
+                //         calendar.setOption('resourceOrder', 'title');
+                //     } else {
+                //         this.value = '';
+                //         this.innerHTML = 'Sort by artist';
+                //         calendar.setOption('resourceOrder', '');
+                //     }
+                // })
+
+                // function getResourcesFilteredByGenre() {
+                //     if (genreSelectorEl.value === '_all') {
+                //         return resources;
+                //     } else {
+                //         return resources.filter(function (e) { if (e.genres && e.genres.includes(genreSelectorEl.value)) { return e; }});
+                //         // var tmpRes = [];
+
+                //         // resources.forEach(resource => {
+                //         //     if (!resource.genres.includes(({
+                //         //             genre
+                //         //         }) => genre == genreSelectorEl.value)) {
+                //         //         tmpRes.push(resource);
+                //         //     }
+
+                            
+                //         // });
+
+                //         // return tmpRes;
+                //     }
+                // }
+
+                // genreSelectorEl.addEventListener('change', function () {
+                //     var res = getResourcesFilteredByGenre();
+                //     var timezone = $("#time-zone-selector").val();
+                //     loadMobileView(res, events, selectedCity, timezone);
+                //     // if (genreSelectorEl.value === '_all') 
+                //     //     calendar.setOption('resources', resources);
+                //     // } else {
+                //     //     filteredResources = [];
+                //     //     resources.forEach(resource => {
+                //     //         if (resource.genres.indexOf(genreSelectorEl.value) >
+                //     //             -1) {
+                //     //             filteredResources.push(resource);
+                //     //         }
+                //     //     })
+
+                //     //     // resources.forEach(resource => {
+                //     //     //     if (resource.genres.includes(({
+                //     //     //             genre
+                //     //     //         }) => genre == genreSelectorEl.value)) {
+                //     //     //             filteredResources.push(resource);
+                //     //     //     }
+                //     //     // })
+
+                //     //     calendar.setOption('resources', filteredResources);
+                //     // }
+                //     calendar.refetchResources();
+                // })
+            });
+        });
+
+
+
+
+    });
+</script>
+
+</html>
