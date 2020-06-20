@@ -257,8 +257,14 @@ body {
   background-color: rgba(244,244,244,1);
 }
 
-@media only screen and (min-width: 768px) {
-  
+@media only screen and (min-width: 768) {
+  #mobile-schedule-view-container {
+    display: none;
+  }
+
+  #calendar {
+    display: block;
+  }
 
   .header-grid {
       display: flex;
@@ -272,7 +278,7 @@ body {
 
 
 
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: 768) {
 
   #sortDiv, #genreDiv, .timeZoneDiv {
     padding: 0;
