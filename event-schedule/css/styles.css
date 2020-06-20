@@ -258,13 +258,7 @@ body {
 }
 
 @media only screen and (min-width: 768px) {
-  #mobile-schedule-view-container {
-    display: none;
-  }
-
-  #calendar {
-    display: block;
-  }
+  
 
   .header-grid {
       display: flex;
