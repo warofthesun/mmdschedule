@@ -243,18 +243,10 @@ body {
     margin: auto;
 }
 
-#mobile-schedule-view-container {
-  display: block;
-}
-
-#calendar {
-  display: none;
-}
-
 .header-grid {
   flex-direction: column;
   padding: 20px;
-  background-color: blue;
+  background-color: green;
 }
 
 .mobile-schedule-view-container {
@@ -326,9 +318,6 @@ body {
 
 
 @media only screen and (min-width: 768px) {
-  #mobile-schedule-view-container {
-    display: none;
-  }
 
   #calendar {
     display: block;
